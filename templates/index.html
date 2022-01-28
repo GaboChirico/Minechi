@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      {% block head %}
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+      <title>Inicio - Minechi</title>
+      <link rel="stylesheet" href="static/css/bootstrap.min.css">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+      <link rel="stylesheet" href="static/fonts/fontawesome-all.min.css">
+      <link rel="stylesheet" href="static/fonts/font-awesome.min.css">
+      <link rel="stylesheet" href="static/fonts/fontawesome5-overrides.min.css">
+      <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+      {% endblock %}
+   </head>
+   <body id="page-top">
+      <div id="wrapper">
+         <nav class="navbar navbar-dark align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0">
+            <div class="container-fluid d-flex flex-column p-0">
+               <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+                  <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-fingerprint"></i></div>
+                  <div class="sidebar-brand-text mx-3"><span>MINECHI</span></div>
+               </a>
+               <hr class="sidebar-divider my-0">
+               <ul class="navbar-nav text-light" id="accordionSidebar">
+                  <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}"><i class="fa fa-home"></i><span>Inicio</span></a></li>
+                  <li class="nav-item"><a class="nav-link" href="{{ url_for('ingreso') }}"><i class="far fa-user-circle"></i><span>Ingresar</span></a></li>
+                  <li class="nav-item"><a class="nav-link" href="{{ url_for('registro') }}"><i class="fas fa-user-circle"></i><span>Registrar</span></a></li>
+                  <li class="nav-item"><a class="nav-link" href="{{ url_for('ingreso_proveedor') }}"><i class="fas fa-box-open"></i><span>Acceso Proveedor</span></a></li>
+               </ul>
+               <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
+            </div>
+         </nav>
+         <div class="d-flex flex-column" id="content-wrapper">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{category}}" align="center">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <div id="content" style="background: linear-gradient(180deg, rgb(68,106,215) 0%, var(--bs-blue) 34%, var(--bs-cyan) 74%, white 100%);">
+               <nav class="navbar navbar-light navbar-expand bg-white shadow mb-4 topbar static-top" style="background: var(--bs-blue);color: var(--bs-blue);"></nav>
+               <div class="container">
+                  <div class="row">
+                     <div class="col-md-12" style="color: var(--bs-white);">
+                        <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+                           <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-fingerprint" style="text-align: center;font-size: 90px;color: var(--bs-white);"></i></div>
+                           <div class="sidebar-brand-text mx-3"><span style="text-align: center;color: var(--bs-white);font-size: 90px;">MINECHI</span></div>
+                        </a>
+                     </div>
+                  </div>
+                  <div class="row">
+                     <div class="col-md-4" style="color: var(--bs-white);text-align: center;"><i class="fa fa-shopping-cart" style="font-size: 61px;text-align: center;"></i><strong style="font-size: 32px;text-align: center;"> Compras</strong></div>
+                     <div class="col-md-4" style="color: var(--bs-white);text-align: center;"><i class="fa fa-line-chart" style="font-size: 60px;"></i><strong style="font-size: 32px;"> Estadísticas</strong></div>
+                     <div class="col-md-4" style="color: var(--bs-white);text-align: center;"><i class="fa fa-user" style="color: var(--bs-white);font-size: 60px;"></i><strong style="color: var(--bs-white);font-size: 32px;"> Perfil</strong></div>
+                  </div>
+               </div>
+               <section class="article-list" style="background: rgba(255,255,255,0);">
+                  <div class="container" style="background: rgba(255,255,255,0);">
+                     <div class="intro"></div>
+                     <div class="row articles">
+                        <div class="col-sm-6 col-md-4">
+                           <p class="description" style="color: var(--bs-white)"></p>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                           <p class="description" style="color: var(--bs-white)"></p>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                           <p class="description" style="color: var(--bs-white)"></p>
+                        </div>
+                     </div>
+                  </div>
+               </section>
+            </div>
+            <footer class="bg-white sticky-footer">
+               {% block footer %}
+               <div class="container my-auto">
+                  <div class="text-center my-auto copyright"><span>Copyright © Minechi 2022</span></div>
+               </div>
+               {% endblock %}
+            </footer>
+         </div>
+      </div>
+      <script src="static/css/bootstrap.min.js"></script>
+      <script src="static/js/script.min.js"></script>
+   </body>
+</html>

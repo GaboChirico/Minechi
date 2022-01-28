@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      {% block head %}
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+      <title>Productos - Minechi</title>
+      <link rel="stylesheet" href="static/css/bootstrap.min.css">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+      <link rel="stylesheet" href="static/fonts/fontawesome-all.min.css">
+      <link rel="stylesheet" href="static/fonts/font-awesome.min.css">
+      <link rel="stylesheet" href="static/fonts/fontawesome5-overrides.min.css">
+      <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+      <script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
+      {% endblock %}
+   </head>
+   <body id="page-top">
+      <div id="wrapper">
+         <!-- Barra navegadora lateral -->
+         <nav class="navbar navbar-dark align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0">
+            <div class="container-fluid d-flex flex-column p-0">
+               <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+                  <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-fingerprint"></i></div>
+                  <div class="sidebar-brand-text mx-3"><span>MINECHI</span></div>
+               </a>
+               <hr class="sidebar-divider my-0">
+               <ul class="navbar-nav text-light" id="accordionSidebar">
+                  <li class="nav-item"><a class="nav-link active" href="{{url_for('dashboard')}}"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                  <li class="nav-item"><a class="nav-link" href="{{url_for('perfil')}}"><i class="fas fa-user"></i><span>Perfil</span></a></li>
+                  <li class="nav-item"><a class="nav-link" href="{{url_for('productos')}}"><i class="fas fa-table"></i><span>Productos</span></a></li>
+               </ul>
+               <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
+            </div>
+         </nav>
+         <div class="d-flex flex-column" id="content-wrapper">
+            <div id="content">
+               {% block content %}
+               <!-- Barra navegadora superior -->
+               <nav class="navbar navbar-light navbar-expand bg-white shadow mb-4 topbar static-top">
+                  <div class="container-fluid">
+                     <button class="btn btn-link d-md-none rounded-circle me-3" id="sidebarToggleTop" type="button"><i class="fas fa-bars"></i></button>
+                     <h3 class="text-dark mb-0">Productos</h3>
+                     <ul class="navbar-nav flex-nowrap ms-auto">
+                        <!-- Usuarios /Reponer / Carrito -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                           {% if usuario.admin %}
+                           <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" href="{{url_for('usuarios')}}"><i class="fas fa-users fa-fw"></i></a></div>
+                           {% elif usuario.proveedor() %}
+                           <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" href="{{url_for('reponer')}}">{% if usuario.productos_reponer() == 0 %}{% else %}<span class="badge bg-danger badge-counter"> {{ usuario.productos_reponer() }}{% endif %}</span><i class="fas fa-bell fa-fw"></i></a></div>
+                           {% else %}
+                           <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" href="{{url_for('carrito')}}">{% if usuario.items_carrito() == 0 %}{% else %}<span class="badge bg-danger badge-counter">{{ usuario.items_carrito() }}{% endif %}</span><i class="fas fa-shopping-cart fa-fw"></i></a></div>
+                           {% endif%}
+                        </li>
+                        <div class="d-none d-sm-block topbar-divider"></div>
+                        <!-- Usuario -->
+                        <li class="nav-item dropdown no-arrow">
+                           <div class="nav-item dropdown show no-arrow">
+                              <a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#"><span class="d-none d-lg-inline me-2 text-gray-600 small">{{ usuario.nombre }} {{ usuario.apellidos }} {{ usuario.nombre_empresa }}</span><img class="border rounded-circle img-profile" src="static/img/avatars/{{ usuario.avatar }}"></a>
+                              <div class="dropdown-menu dropdown-menu-end animated--grow-in">
+                                 <a class="dropdown-item" href="{{url_for('historial')}}"><i class="fas fa-list fa-sm fa-fw me-2 text-gray-400"></i>Historial</a>
+                                 <div class="dropdown-divider"></div>
+                                 <a class="dropdown-item" href="{{url_for('logout')}}"><i class="fas fa-power-off fa-sm fa-fw me-2 text-gray-400"></i>Cerrar Sesión</a>
+                              </div>
+                           </div>
+                        </li>
+                     </ul>
+                  </div>
+               </nav>
+               <!-- Contenido -->
+               <div class="container-fluid">
+                  {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                  {% for category, message in messages %}
+                  <div class="alert alert-{{category}}" align="center">{{ message }}</div>
+                  {% endfor %}
+                  {% endif %}
+                  {% endwith %}
+                  <div class="card shadow">
+                     <div class="card-header py-3">
+                        {% if usuario.proveedor() %}
+                        <p class="text-primary m-0 fw-bold">Productos de {{ usuario.nombre_empresa }}</p>
+                        {% else %}
+                        <p class="text-primary m-0 fw-bold">Lista de Productos</p>
+                        {% endif %}
+                     </div>
+                     <div class="card-body">
+                        <div class="row">
+                           <div class="col-md-6 text-nowrap">
+                              {% if usuario.admin %}
+                              <a id="rellenar_stock" href="{{url_for('rellenar_stock')}}" class="btn btn-sm btn-primary" >Máximo Stock</a>
+                              <a id="vaciar_stock" href="{{url_for('vaciar_stock')}}" class="btn btn-sm btn-primary">Mínimo Stock</a>
+                              {% else %}
+                           </div>
+                           <div class="col-md-6">
+                              <form method="get">
+                                 <div class="text-md-end dataTables_filter" id="dataTable_filter"><label class="form-label"><input name="buscar" type="search" class="form-control form-control-sm" placeholder="Buscar"></label></div>
+                              </form>
+                              {% endif %}
+                           </div>
+                        </div>
+                        <!-- Tablas -->
+                        <form method="post">
+                           {% if (lista_productos | length) == 0 %}
+                           <div class="table">
+                              <h2 align="center">No hay resultados.</h2>
+                           </div>
+                        </form>
+                     </div>
+                     {% else %}
+                     <form method="post">
+                        <div class="table-responsive" id="tabla_productos" role="grid">
+                           <table class="table sortable" id="productos">
+                              <!-- Tabla Admin -->
+                              {% if usuario.admin %}
+                              <thead class="table-light">
+                                 <tr>
+                                    <th class="sorttable_nosort"></th>
+                                    <th>ID</th>
+                                    <th>Producto</th>
+                                    <th>Precio</th>
+                                    <th align="center">Almacen</th>
+                                    <th align="center">Ventas</th>
+                                    <th align="center">Ganancia</th>
+                                    <th>Proveedor</th>
+                                 </tr>
+                              </thead>
+                              <tbody>
+                              {% for item in lista_productos %}
+                                 <tr>
+                                    <td><img src="static/img/productos/{{item.imagen}}" width="60" height="60" alt="{{item.nombre}}"></td>
+                                    <td>{{ item.id }}</td>
+                                    <td>{{ item.nombre }}</td>
+                                    <td>{{ "%.2f"|format(item.precio) }}</td>
+                                    <td>
+                                       <div>{{ item.porcentaje_stock() | int }}% </div>
+                                       <div>({{ item.unidades_existentes }}/{{ item.capacidad_max }})</div>
+                                    </td>
+                                    <td>
+                                       <div>{{ "%.2f"|format((item.veces_vendido() * 100) / usuario.transacciones_productos()) }}%</div>
+                                       <div>({{ item.veces_vendido() }})</div>
+                                    </td>
+                                    <td>{{ "%.2f"|format(item.ganancia_generada()) }}</td>
+                                    <td>{{ item.proveedor.nombre_empresa }} ({{ (item.proveedor.descuento * 100) | int }}%)</td>
+                                 </tr>
+                                 {% endfor %}
+                              </tbody>
+                              <!-- Tabla Proveedor -->
+                              {% elif usuario.proveedor() %}
+                              <thead class="table-light">
+                                 <tr>
+                                    <th class="sorttable_nosort"></th>
+                                    <th>ID</th>
+                                    <th>Producto</th>
+                                    <th>Precio</th>
+                                    <th align="center">Almacen</th>
+                                    <th align="center">Ventas</th>
+                                    <th>Ganancia</th>
+                                 </tr>
+                              </thead>
+                              <tbody>
+                                 {% for producto in lista_productos %}
+                                 <tr>
+                                    <td><img src="static/img/productos/{{producto.imagen}}" width="60" height="60" alt="{{producto.nombre}}"></td>
+                                    <td>{{ producto.id }}</td>
+                                    <td>{{ producto.nombre }}</td>
+                                    <td>{{ "%.2f"|format(producto.precio) }}</td>
+                                    <td>
+                                       <div>{{ producto.porcentaje_stock() | int }}%</div>
+                                       <div>({{ producto.unidades_existentes }}/{{ producto.capacidad_max }})</div>
+                                    </td>
+                                    <td>
+                                       <div>{{ "%.2f"|format(producto.porcentaje_ventas()) }}%</div>
+                                       <div>({{ producto.veces_vendido() }})</div>
+                                    </td>
+                                    <td>{{ "%.2f"|format(producto.precio * producto.veces_vendido() - producto.ganancia_generada())}}</td>
+                                 </tr>
+                                 {% endfor %}
+                              </tbody>
+                              <!-- Tabla Cliente -->
+                              {% else %}
+                              <thead class="table-light">
+                                 <tr>
+                                    <th class="sorttable_nosort"></th>
+                                    <th>Nombre</th>
+                                    <th>Precio</th>
+                                    <th>Categoría</th>
+                                    <th class="sorttable_nosort">Cantidad</th>
+                                    <th class="sorttable_nosort"></th>
+                                 </tr>
+                              </thead>
+                              <tbody>
+                                 {% for producto in lista_productos %}
+                                 <tr>
+                                    <td><img src="static/img/productos/{{producto.imagen}}" width="60" height="60" alt="{{producto.nombre}}"></td>
+                                    <td>{{ producto.nombre }}</td>
+                                    <td>{{"%.2f"|format(producto.precio)}}</td>
+                                    <td>{{ producto.categoria }}</td>
+                                    {% if producto.unidades_existentes == 0 %}
+                                    <td><input class="form-control form-control-sm" name="{{producto.id}}" value="0" type="number" min="0" max="{{producto.unidades_existentes}}"></td>
+                                    {% else %}
+                                    <td><input class="form-control form-control-sm" name="{{producto.id}}" value="1" type="number" min="1" max="{{producto.unidades_existentes}}"></td>
+                                    {% endif %}
+                                    <td><button class="fa fa-shopping-cart btn btn-sm-min" name="agregar" value="{{producto.id}}" type="submit"></button></td>
+                                 </tr>
+                                 {% endfor %}
+                                 {% endif %}
+                              </tbody>
+                              {% endif %}
+                           </table>
+                        </div>
+                     </form>
+                  </div>
+               </div>
+            </div>
+            {% endblock %}
+         </div>
+         <footer class="bg-white sticky-footer">
+            {% block footer %}
+            <div class="container my-auto">
+               <div class="text-center my-auto copyright"><span>Copyright © Minechi 2022</span></div>
+            </div>
+            {% endblock %}
+         </footer>
+      </div>
+      <a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
+      <script src="static/css/bootstrap.min.js"></script>
+      <script src="static/js/script.min.js"></script>
+   </body>
+</html>

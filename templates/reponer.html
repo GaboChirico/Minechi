@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      {% block head %}
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+      <title>Reponer - Minechi</title>
+      <link rel="stylesheet" href="static/css/bootstrap.min.css">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+      <link rel="stylesheet" href="static/fonts/fontawesome-all.min.css">
+      <link rel="stylesheet" href="static/fonts/font-awesome.min.css">
+      <link rel="stylesheet" href="static/fonts/fontawesome5-overrides.min.css">
+      <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+      {% endblock %}
+   </head>
+   <body id="page-top">
+      <div id="wrapper">
+         <!-- Barra navegadora lateral -->
+         <nav class="navbar navbar-dark align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0">
+            <div class="container-fluid d-flex flex-column p-0">
+               <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+                  <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-fingerprint"></i></div>
+                  <div class="sidebar-brand-text mx-3"><span>MINECHI</span></div>
+               </a>
+               <hr class="sidebar-divider my-0">
+               <ul class="navbar-nav text-light" id="accordionSidebar">
+                  <li class="nav-item"><a class="nav-link active" href="{{url_for('dashboard')}}"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                  <li class="nav-item"><a class="nav-link" href="{{url_for('perfil')}}"><i class="fas fa-user"></i><span>Perfil</span></a></li>
+                  <li class="nav-item"><a class="nav-link" href="{{url_for('productos')}}"><i class="fas fa-table"></i><span>Productos</span></a></li>
+               </ul>
+               <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
+            </div>
+         </nav>
+         <div class="d-flex flex-column" id="content-wrapper">
+            <div id="content">
+               {% block content %}
+               <!-- Barra navegadora superior -->
+               <nav class="navbar navbar-light navbar-expand bg-white shadow mb-4 topbar static-top">
+                  <div class="container-fluid">
+                     <button class="btn btn-link d-md-none rounded-circle me-3" id="sidebarToggleTop" type="button"><i class="fas fa-bars"></i></button>
+                     <h3 class="text-dark mb-0">Reponer Productos</h3>
+                     <ul class="navbar-nav flex-nowrap ms-auto">
+                        <!-- Reponer -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                           <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" href="{{url_for('reponer')}}">{% if usuario.productos_reponer() == 0 %}{% else %}<span class="badge bg-danger badge-counter"> {{ usuario.productos_reponer() }}{% endif %}</span><i class="fas fa-bell fa-fw"></i></a></div>
+                        </li>
+                        <div class="d-none d-sm-block topbar-divider"></div>
+                        <!-- Usuario -->
+                        <li class="nav-item dropdown no-arrow">
+                           <div class="nav-item dropdown show no-arrow">
+                              <a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#"><span class="d-none d-lg-inline me-2 text-gray-600 small">{{ usuario.nombre }} {{ usuario.apellidos }} {{ usuario.nombre_empresa }} </span><img class="border rounded-circle img-profile" src="static/img/avatars/{{ usuario.avatar }}"></a>
+                              <div class="dropdown-menu dropdown-menu-end animated--grow-in">
+                                 <a class="dropdown-item" href="{{url_for('historial')}}"><i class="fas fa-list fa-sm fa-fw me-2 text-gray-400"></i>Historial</a>
+                                 <div class="dropdown-divider"></div>
+                                 <a class="dropdown-item" href="{{url_for('logout')}}"><i class="fas fa-power-off fa-sm fa-fw me-2 text-gray-400"></i>Cerrar Sesión</a>
+                              </div>
+                           </div>
+                        </li>
+                     </ul>
+                  </div>
+               </nav>
+               <!-- Contenido -->
+               <div class="container-fluid">
+                  {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                  {% for category, message in messages %}
+                  <div class="alert alert-{{category}}" align="center">{{ message }}</div>
+                  {% endfor %}
+                  {% endif %}
+                  {% endwith %}
+                  <div class="card shadow">
+                     <div class="card-header">
+                        <p class="text-primary m-0 fw-bold">Productos para Reponer</p>
+                     </div>
+                     <div class="card-body">
+                        {% if usuario.productos_reponer() == 0 %}
+                        <div class="table my-0">
+                           <h2 align="center">No hay productos para reponer.</h2>
+                        </div>
+                     </div>
+                     {% else %}
+                     <!-- Tabla -->
+                     <div class="table-responsive" id="reposicion" role="grid">
+                        <form name="reponer" method="post">
+                           <table class="table my-0">
+                              <thead class="table-light">
+                                 <tr>
+                                    <th></th>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Stock</th>
+                                    <th>Máximo</th>
+                                    <th>Cantidad</th>
+                                 </tr>
+                              </thead>
+                              <tbody>
+                                 {% for item in usuario.producto %}
+                                 {% if item.porcentaje_stock() <= 10 %}
+                                 <tr>
+                                    <td><img src="static/img/productos/{{item.imagen}}" width="60" height="60"></td>
+                                    <td><input type="hidden" name="producto" id="producto" value="{{ item.id }}">{{ item.id }}</td>
+                                    <td>{{ item.nombre }} ({{"%.2f"|format(item.precio)}}€)</td>
+                                    <td><div>{{ "%.2f"|format(item.porcentaje_stock()) }}%</div>
+                                       <div>({{ item.unidades_existentes }})</div></td>
+                                    <td>{{ item.capacidad_max }}</td>
+                                    <td><input class="form-control form-control-sm" name="{{ item.id }}" value="1" type="number" min="0" max="{{item.capacidad_max - item.unidades_existentes}}"></td>
+                                 </tr>
+                                 <!--Modal -->
+                                 <div role="dialog" tabindex="-1" class="modal fade show py-3" id="confirmar">
+                                    <div class="modal-dialog" role="alert">
+                                       <div class="modal-content">
+                                          <div class="modal-header shadow">
+                                             <h4 class="modal-title text-primary m-0 fw-bold" align="center">Confirmación de Reposición</h4>
+                                          </div>
+                                          <div class="modal-body">
+                                             <h6>¿Quiere confirmar la reposición?</h6>
+                                          </div>
+                                          <div class="modal-footer">
+                                             <button class="btn btn-light" type="button" id="cerrar" data-bs-dismiss="modal">Cancelar</button>
+                                             <button class="btn btn-primary" type="submit" id="reponer">Confirmar</button>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 {% endif %}
+                                 {% endfor %}
+                              </tbody>
+                           </table>
+                        </form>
+                     </div>
+                     <div class="row">
+                        <button id="tramitar" class="btn btn-primary">Tramitar Reposición</button>
+                        {% endif %}
+                        <script>
+                           // Modal
+                           var modal = document.getElementById("confirmar");
+                           // Boton que abre el Modal
+                           var btn = document.getElementById("tramitar");
+                           // Trigger del Modal
+                           btn.onclick = function() {
+                           modal.style.display = "block";
+                           }
+                           // Boton de Cancelar
+                           cerrar.onclick = function() {
+                           modal.style.display = "none";
+                           }
+                           // Cerrar al hacer click fuera
+                           window.onclick = function(event) {
+                           if (event.target == modal) {
+                           modal.style.display = "none";
+                           }
+                           }
+                        </script>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+         {% endblock %}
+         <footer class="bg-white sticky-footer">
+            {% block footer %}
+            <div class="container my-auto">
+               <div class="text-center my-auto copyright"><span>Copyright © Minechi 2022</span></div>
+            </div>
+            {% endblock %}
+         </footer>
+      </div>
+      <a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
+      <script src="static/css/bootstrap.min.js"></script>
+      <script src="static/js/script.min.js"></script>
+   </body>
+</html>

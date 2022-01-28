@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      {% block head %}
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+      <title>Perfil - Minechi</title>
+      <link rel="stylesheet" href="static/css/bootstrap.min.css">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+      <link rel="stylesheet" href="static/fonts/fontawesome-all.min.css">
+      <link rel="stylesheet" href="static/fonts/font-awesome.min.css">
+      <link rel="stylesheet" href="static/fonts/fontawesome5-overrides.min.css">
+      <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+      {% endblock %}
+   </head>
+   <body id="page-top">
+      <div id="wrapper">
+         <!-- Barra navegadora lateral -->
+         <nav class="navbar navbar-dark align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0">
+            <div class="container-fluid d-flex flex-column p-0">
+               <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+                  <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-fingerprint"></i></div>
+                  <div class="sidebar-brand-text mx-3"><span>MINECHI</span></div>
+               </a>
+               <hr class="sidebar-divider my-0">
+               <ul class="navbar-nav text-light" id="accordionSidebar">
+                  <li class="nav-item"><a class="nav-link active" href="{{url_for('dashboard')}}"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                  <li class="nav-item"><a class="nav-link" href="{{url_for('perfil')}}"><i class="fas fa-user"></i><span>Perfil</span></a></li>
+                  <li class="nav-item"><a class="nav-link" href="{{url_for('productos')}}"><i class="fas fa-table"></i><span>Productos</span></a></li>
+               </ul>
+               <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
+            </div>
+         </nav>
+         <div class="d-flex flex-column" id="content-wrapper">
+            <div id="content">
+               {% block content %}
+               <!-- Barra navegadora superior -->
+               <nav class="navbar navbar-light navbar-expand bg-white shadow mb-4 topbar static-top">
+                  <div class="container-fluid">
+                     <button class="btn btn-link d-md-none rounded-circle me-3" id="sidebarToggleTop" type="button"><i class="fas fa-bars"></i></button>
+                     <h3 class="text-dark mb-0">Perfil Usuario: {{usuario.usuario}}</h3>
+                     <ul class="navbar-nav flex-nowrap ms-auto">
+                        <!-- Usuarios /Reponer / Carrito -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                           {% if usuario.admin %}
+                           <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" href="{{url_for('usuarios')}}"><i class="fas fa-users fa-fw"></i></a></div>
+                           {% elif usuario.proveedor() %}
+                           <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" href="{{url_for('reponer')}}">{% if usuario.productos_reponer() == 0 %}{% else %}<span class="badge bg-danger badge-counter"> {{ usuario.productos_reponer() }}{% endif %}</span><i class="fas fa-bell fa-fw"></i></a></div>
+                           {% else %}
+                           <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" href="{{url_for('carrito')}}">{% if usuario.items_carrito() == 0 %}{% else %}<span class="badge bg-danger badge-counter">{{ usuario.items_carrito() }}{% endif %}</span><i class="fas fa-shopping-cart fa-fw"></i></a></div>
+                           {% endif%}
+                        </li>
+                        <div class="d-none d-sm-block topbar-divider"></div>
+                        <!-- Usuario -->
+                        <li class="nav-item dropdown no-arrow">
+                           <div class="nav-item dropdown show no-arrow">
+                              <a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#"><span class="d-none d-lg-inline me-2 text-gray-600 small">{{ usuario.nombre }} {{ usuario.apellidos }} {{ usuario.nombre_empresa }}</span><img class="border rounded-circle img-profile" src="static/img/avatars/{{ usuario.avatar }}"></a>
+                              <div class="dropdown-menu dropdown-menu-end animated--grow-in">
+                                 <a class="dropdown-item" href="{{url_for('historial')}}"><i class="fas fa-list fa-sm fa-fw me-2 text-gray-400"></i>Historial</a>
+                                 <div class="dropdown-divider"></div>
+                                 <a class="dropdown-item" href="{{url_for('logout')}}"><i class="fas fa-power-off fa-sm fa-fw me-2 text-gray-400"></i>Cerrar Sesión</a>
+                              </div>
+                           </div>
+                        </li>
+                     </ul>
+                  </div>
+               </nav>
+               <!-- Contenido -->
+               <div class="container-fluid">
+                  {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                  {% for category, message in messages %}
+                  <div class="alert alert-{{category}}" align="center">{{ message }}</div>
+                  {% endfor %}
+                  {% endif %}
+                  {% endwith %}
+                  <div class="row">
+                     <div class="col-lg-4">
+                        <div class="card shadow mb-3">
+                           <div class="card-header py-1">
+                              <p class="text-primary m-0 fw-bold">Avatar</p>
+                           </div>
+                           <div class="card-body text-center shadow">
+                              <img class="rounded-circle mb-3 mt-4" src="static/img/avatars/{{usuario.avatar}}" width="160" height="160">
+                              <form method="post" name="avatar" enctype="multipart/form-data">
+                                 <div class="mb-3"><input class="btn btn-primary btn-sm" type="file" name="file"></div>
+                                 <div class="mb-3"><button class="btn btn-primary btn-sm" type="submit" name="btn" value="avatar">Cambiar Foto</button></div>
+                              </form>
+                           </div>
+                        </div>
+                        {% if usuario.admin %}
+                        <div class="col">
+                           <a id="restablecer_passwords" href="{{url_for('restablecer_passwords')}}" class="btn btn-primary" >Cambiar Contaseñas</a>
+                           <a id="eliminar_transacciones" href="{{url_for('eliminar_transacciones')}}" class="btn btn-primary">Eliminar Transacciones</a>
+                        </div>
+                        {% endif %}
+                     </div>
+                     <div class="col-lg-8">
+                        <div class="row">
+                           <div class="col">
+                              <div class="card shadow mb-3">
+                                 <div class="card-header py-1">
+                                    <p class="text-primary m-0 fw-bold">Ajustes de Usuario</p>
+                                 </div>
+                                 <div class="card-body">
+                                    <form method="post" name="datos">
+                                       <div class="row">
+                                          {% if usuario.proveedor() %}
+                                          <!-- Nombre Empresa -->
+                                          <div class="mb-3"><label class="form-label" style="color: black;"><strong>Nombre de Empresa</strong></label>
+                                             <input class="form-control" type="text" placeholder="{{usuario.nombre_empresa}}" name="nombre_empresa">
+                                          </div>
+                                          {% else %}
+                                          <!-- Nombre -->
+                                          <div class="col">
+                                             <div class="mb-3"><label class="form-label" style="color: black;"><strong>Nombre</strong></label>
+                                                <input class="form-control" type="text" placeholder="{{usuario.nombre}}" name="nombre">
+                                             </div>
+                                          </div>
+                                          <!-- Apellidos -->
+                                          <div class="col">
+                                             <div class="mb-3"><label class="form-label" style="color: black;"><strong>Apellidos</strong><br></label>
+                                                <input class="form-control" type="text" placeholder="{{usuario.apellidos}}" name="apellidos">
+                                             </div>
+                                          </div>
+                                          {% endif %}
+                                       </div>
+                                       <!-- Correo Electronico -->
+                                       <div class="row">
+                                          <div class="col">
+                                             <div class="mb-3"><label class="form-label" style="color: black;"><strong>Correo Electrónico </strong><br></label>
+                                                <input class="form-control" type="email"  placeholder="{{usuario.email}}" name="email">
+                                             </div>
+                                          </div>
+                                          <!-- Telefono -->
+                                          <div class="col">
+                                             <div class="mb-3"><label class="form-label" style="color: black;"><strong>Teléfono</strong><br></label>
+                                                <input class="form-control" type="number" placeholder="{{usuario.telefono}}" name="telefono">
+                                             </div>
+                                          </div>
+                                       </div>
+                                       <!-- Direccion -->
+                                       <div class="mb-3"><label class="form-label" style="color: black;"><strong>Dirección</strong></label>
+                                          <input class="form-control" type="text" placeholder="{{usuario.direccion}}" name="direccion">
+                                       </div>
+                                       <div class="row">
+                                          <!-- Ciudad -->
+                                          <div class="col">
+                                             <div class="mb-3"><label class="form-label" style="color: black;"><strong>Ciudad</strong></label>
+                                                <input class="form-control" type="text" placeholder="{{usuario.ciudad}}" name="ciudad">
+                                             </div>
+                                          </div>
+                                          <!-- Pais -->
+                                          <div class="col">
+                                             <div class="mb-3"><label class="form-label" style="color: black;"><strong>País</strong></label>
+                                                <input class="form-control" type="text" placeholder="{{usuario.pais}}" name="pais">
+                                             </div>
+                                          </div>
+                                       </div>
+                                       <div class="col">
+                                          <div class="mb-3 "><button class="btn btn-primary btn-md" name="btn" value="datos" type="submit">Guardar Cambios</button></div>
+                                       </div>
+                                    </form>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               {% endblock %}
+            </div>
+            <footer class="bg-white sticky-footer">
+               {% block footer %}
+               <div class="container my-auto">
+                  <div class="text-center my-auto copyright"><span>Copyright © Minechi 2022</span></div>
+               </div>
+               {% endblock %}
+            </footer>
+         </div>
+         <a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
+      </div>
+      <script src="static/css/bootstrap.min.js"></script>
+      <script src="static/js/script.min.js"></script>
+   </body>
+</html>
